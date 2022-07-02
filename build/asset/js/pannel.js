@@ -29,7 +29,7 @@ qr('#newwin').addEventListener('click', function () {
 qr('#issuebtn').addEventListener('click', gotoGithubIssue);
 
 qr('#copy').addEventListener('click', function () {
-  qr('#outp2').select();
+  qr('#outp3').select();
   document.execCommand('copy');
   this.innerText='Copied';
   setTimeout(() => {

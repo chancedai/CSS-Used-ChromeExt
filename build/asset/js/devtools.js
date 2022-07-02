@@ -94,6 +94,7 @@ chrome.devtools.panels.elements.createSidebarPane(
       sidebarvisible = true;
       outp1 = win.document.body.querySelector('#outp1');
       outp2 = win.document.body.querySelector('#outp2');
+      outp3 = win.document.body.querySelector('#outp3');
       pop = win.document.body.querySelector('#pop');
       tips = win.document.body.querySelector('#pop ol');
       input = win.document.body.querySelector('input[name=data]');
@@ -135,6 +136,23 @@ backgroundPageConnection.onMessage.addListener(function (message, sender, sendRe
   } else {
     outp1.value = message.html;
     outp2.value = message.css;
+    outp3.value = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSS Used</title>
+  <style>
+    ${message.css}
+  </style>
+</head>
+<body>
+  ${message.html}
+</body>
+</html>
+    `;
     outp2.select();
     input.value = JSON.stringify({
       title: 'New Pen via CSS-Used',
