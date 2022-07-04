@@ -9,6 +9,8 @@ window.chrome = {
           console.log('Test Passed.');
         }else{
           console.log('Test fail.')
+          // console.log('********** expect:', expected(location.port));
+          // console.log('********** acture:', obj.css);
           console.dir({
             expect:expected(location.port),
             acture:obj.css

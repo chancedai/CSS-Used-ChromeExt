@@ -31,7 +31,7 @@ function fix(s) {
   // endOfRuleLine:the end of the lastRule line number
   var endOfRuleLine = s.length;
   var fontFacePosition = s.indexOf('/*! CSS Used fontfaces */');
-  var keyFramsPosition = s.indexOf('/*! CSS Used keyframes */');
+  var keyFramsPosition = s.indexOf('/*! Keyframes */');
   if (keyFramsPosition !== -1) {
     endOfRuleLine = keyFramsPosition;
   } else if (fontFacePosition !== -1) {
@@ -42,7 +42,7 @@ function fix(s) {
     endOfRuleLine--;
   }
   var arr = [],
-    regFrom = /^\/\*! CSS Used from: /;
+    regFrom = /^\/\*! /;
   for (var i = 0; i < endOfRuleLine; i++) {
     if ((s[i].match(regFrom) !== null) && (i + 1 === endOfRuleLine || (s[i + 1].match(regFrom) !== null))) {
       continue;

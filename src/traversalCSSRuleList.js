@@ -21,9 +21,9 @@ function traversalCSSRuleList(doc, externalCssCache, cssNodeArr) {
         strMediaText = `; media=${cssNodeArr.media.mediaText} `;
       }
       if (cssNodeArr.href === doc.location.href) {
-        objCss.normRule.push(`/*! CSS Used from: Embedded ${strMediaText}*/`);
+        objCss.normRule.push(`/*! ${strMediaText}*/`);
       } else if (cssNodeArr.href && !cssNodeArr.parentHref) {
-        objCss.normRule.push(`/*! CSS Used from: ${cssNodeArr.href} ${strMediaText}*/`);
+        objCss.normRule.push(`/*! ${cssNodeArr.href} ${strMediaText}*/`);
       }
     }
 
