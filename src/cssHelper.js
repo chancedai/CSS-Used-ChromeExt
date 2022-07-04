@@ -41,7 +41,19 @@ var helper = {
     resultCssRules = styleElement.sheet;
     doc.body.removeChild(styleElement);
     return resultCssRules;
-  }
+  },
+  getCSSClassName: function(name){
+    // html 类似的类名，在 css 中需要转义 hover:before-1/4
+    name = name.replace(/\:/g,'\:');
+    name = name.replace(/\//g,'\/');
+    return name;
+  },
+  // getHTMLClassName: function(name){
+  //   // css 类似的类名，在 css 需要把转义去掉
+  //   name = name.replace(/\\/g,'');
+  //   return name;
+  // }
 }
+
 
 module.exports = helper;

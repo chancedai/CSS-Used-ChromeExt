@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <script>
+    const PseudoClass = '((-(webkit|moz|ms|o)-)?(full-screen|fullscreen))|-o-prefocus|active|checked|disabled|empty|enabled|focus|hover|in-range|invalid|link|out-of-range|target|valid|visited',
+  PseudoElement = '((-(webkit|moz|ms|o)-)?(focus-inner|input-placeholder|placeholder|selection|resizer|scrollbar(-(button|thumb|corner|track(-piece)?))?))|-ms-(clear|reveal|expand)|-moz-(focusring)|-webkit-(details-marker)|after|before|first-letter|first-line',
+  MaxPossiblePseudoLength=30,
+  REG0=new RegExp('^(:(' + PseudoClass + ')|::?(' + PseudoElement + '))+$', ''),
+  REG1=new RegExp('( |^)(:(' + PseudoClass + ')|::?(' + PseudoElement + '))+( |$)', 'ig'),
+  REG2=new RegExp('\\((:(' + PseudoClass + ')|::?(' + PseudoElement + '))+\\)', 'ig'),
+  REG3=new RegExp('(:(' + PseudoClass + ')|::?(' + PseudoElement + '))+', 'ig');
+
+  console.log(
+    '一、只匹配 :active',
+    ':active'.match(REG0), // *
+    '-----',
+    'span:active'.match(REG0), // span
+    '-----',
+    'span :active'.match(REG0), // span *
+    '-----',
+    ':active span'.match(REG0), // * span
+    '-----',
+    'a:active span'.match(REG0), // a span
+    '-----',
+    'div a:active span'.match(REG0), // div a span
+  
+  );
+
+  console.log(
+    '二、获取真实选择器，第一步',
+    ':active'.replace(REG1, ' * '), // *
+    '-----',
+    'span:active'.replace(REG1, ' * '), // span:active 
+    '-----',
+    'span :active'.replace(REG1, ' * '), // span *  
+    '-----',
+    ':active span'.replace(REG1, ' * '), //  * span 
+    '-----',
+    'a:active span'.replace(REG1, ' * '), // a:active span 
+    '-----',
+    'div a:active span'.replace(REG1, ' * '), // div a:active span
+  );
+
+  console.log(
+    '二、获取真实选择器，第二步',
+    ':active'.replace(REG1, ' * ').replace(REG2, '(*)'), // *
+    '-----',
+    'span:active'.replace(REG1, ' * ').replace(REG2, '(*)'), // span:active 
+    '-----',
+    'span :active'.replace(REG1, ' * ').replace(REG2, '(*)'), // span *  
+    '-----',
+    ':active span'.replace(REG1, ' * ').replace(REG2, '(*)'), //  * span 
+    '-----',
+    'a:active span'.replace(REG1, ' * ').replace(REG2, '(*)'), // a:active span 
+    '-----',
+    'div a:active span'.replace(REG1, ' * ').replace(REG2, '(*)'), // div a:active span
+  );
+
+  console.log(
+    '二、获取真实选择器，最后步',
+    ':active'.replace(REG1, ' * ').replace(REG2, '(*)').replace(REG3, ''), // * => .containerClz:active, .containerClz :active
+    '-----',
+    'span:active'.replace(REG1, ' * ').replace(REG2, '(*)').replace(REG3, ''), // span => .newclz:active
+    '-----',
+    'span :active'.replace(REG1, ' * ').replace(REG2, '(*)').replace(REG3, ''), // span * => .newclz :active
+    '-----',
+    ':active span'.replace(REG1, ' * ').replace(REG2, '(*)').replace(REG3, ''), // * span => .containerClz:active .span, .containerClz :active .span
+    '-----',
+    'a:active span'.replace(REG1, ' * ').replace(REG2, '(*)').replace(REG3, ''), // a span
+    '-----',
+    'div a:active span'.replace(REG1, ' * ').replace(REG2, '(*)').replace(REG3, ''), // div a span
+    '-----',
+    'div>a:active>span'.replace(REG1, ' * ').replace(REG2, '(*)').replace(REG3, ''), // div>a>span
+  );
+
+
+  
+
+    </script>
+</body>
+</html>

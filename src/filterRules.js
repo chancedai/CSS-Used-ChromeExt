@@ -7,6 +7,9 @@
 
 var debugMode = process.env.NODE_ENV!=='production';
 const cssHelper = require('./cssHelper');
+const getHash = require('./getHash');
+const MiniIdGenerator = require('./MiniIdGenerator');
+const selectorParser = require('postcss-selector-parser');
 
 // may match accoding to interaction
 const PseudoClass = '((-(webkit|moz|ms|o)-)?(full-screen|fullscreen))|-o-prefocus|active|checked|disabled|empty|enabled|focus|hover|in-range|invalid|link|out-of-range|target|valid|visited',
@@ -17,15 +20,32 @@ const PseudoClass = '((-(webkit|moz|ms|o)-)?(full-screen|fullscreen))|-o-prefocu
   REG2=new RegExp('\\((:(' + PseudoClass + ')|::?(' + PseudoElement + '))+\\)', 'ig'),
   REG3=new RegExp('(:(' + PseudoClass + ')|::?(' + PseudoElement + '))+', 'ig');
 
+
+  
+  const removePseudos = (function(){
+    const processor = selectorParser(selectors => {
+      selectors.walkPseudos(selector => {
+          selector.remove();
+      });
+    });
+    return function(selector){
+      return processor.processSync(selector);
+    };
+  })();
+  
+
 function filterRules($0, objCss, taskTimerRecord) {
+
   var promises = [];
   var matched = [];
   var keyFramUsed = [];
   var fontFaceUsed = [];
 
+  // 克隆一个节点，方便后面修改 html, 如改 class 名
+  var container = $0.cloneNode(true);
   var domlist = [];
-  domlist.push($0);
-  Array.prototype.forEach.call($0.querySelectorAll('*'), function (e) {
+  domlist.push(container);
+  Array.prototype.forEach.call(container.querySelectorAll('*'), function (e) {
     domlist.push(e);
   });
 
@@ -54,6 +74,7 @@ function filterRules($0, objCss, taskTimerRecord) {
               if (selMatched.indexOf(sel) !== -1) {
                 return;
               }
+              
               // these pseudo class/elements can apply to any ele
               // but wont apply now 
               // eg. :active{xxx}
@@ -62,19 +83,14 @@ function filterRules($0, objCss, taskTimerRecord) {
                 selMatched.push(sel);
               } else {
                 let count = [];
-                let replacedSel = sel.replace(REG1, ' * ')
-                  .replace(REG2, '(*)')
-                  .replace(REG3, '');
-                // try {
-                //   if ($0.matches(sel) || $0.querySelectorAll(sel).length !== 0) {
-                //     selMatched.push(sel);
-                //   }
-                // } catch (e) {
-                //   count.push(sel);
-                //   count.push(e);
-                // }
+
+                // 删除伪类
+                let replacedSel = removePseudos(sel);
+
+                console.log(self, replacedSel, '转义后');
+
                 try {
-                  if ($0.matches(replacedSel) || $0.querySelectorAll(replacedSel).length !== 0) {
+                  if (container.matches(replacedSel) || container.querySelectorAll(replacedSel).length !== 0) {
                     selMatched.push(sel);
                   }
                 } catch (e) {
@@ -90,11 +106,18 @@ function filterRules($0, objCss, taskTimerRecord) {
               }
             });
             if (selMatched.length !== 0) {
-              var cssText = selMatched.filter(function (v, i, self) {
+              var selector = selMatched.filter(function (v, i, self) {
                 return self.indexOf(v) === i;
               }).join(',');
-              cssText += ('{' + cssHelper.normRuleNodeToText(rule) + '}');
-              res(cssText);
+
+              var content = '{' + cssHelper.normRuleNodeToText(rule) + '}';
+              
+              res({
+                selector,
+                content,
+              });
+
+              // 检查使用了哪些动画
               rule.nodes.forEach(function (ele, idx) {
                 if (ele.prop && ele.prop.match(/^(-(webkit|moz|ms|o)-)?animation(-name)?$/i) !== null) {
                   keyFramUsed = keyFramUsed.concat(ele.value.split(/ *, */).map(function (ele) {
@@ -102,32 +125,63 @@ function filterRules($0, objCss, taskTimerRecord) {
                   }));
                 };
               });
-              let fontfamilyOfRule = cssHelper.textToCss(cssText);
+
+              // 检查使用了哪些字体，把样式直接渲染到页面，可以直接从类似
+              // document.styleSheets[0].cssRules[17].style.fontFamily 属性获取字体
+              // 不用解析
+              let fontfamilyOfRule = cssHelper.textToCss(selector+content);
               if (fontfamilyOfRule.cssRules[0] && fontfamilyOfRule.cssRules[0].style.fontFamily) {
                 fontFaceUsed = fontFaceUsed.concat(fontfamilyOfRule.cssRules[0].style.fontFamily.split(', '));
               }
               return;
             }
           }
-          res("");
+          res('');
         }, 0);
         taskTimerRecord.push(timer);
       }));
     });
 
     Promise.all(promises).then(function (result) {
+
+      const renameMap = {};
+
+      const getId = (function(){
+        const hash = getHash(JSON.stringify(result));
+        const getMiniId = new MiniIdGenerator();
+        return function(content){
+          return renameMap[content.toString()] = renameMap[content.toString()]||  (getMiniId()+'-'+hash);
+        };
+      })();
+
+      const selectorProcessor = selectorParser(selectors => {
+        // css class 改名
+        selectors.walkClasses(function(node){
+          node.value = getId(node.value);
+        });
+        // if (ids) selectors.walkIds(renameNode);
+      });
+
       keyFramUsed = keyFramUsed.filter(function (v, i, self) {
         return self.indexOf(v) === i;
       });
       fontFaceUsed = fontFaceUsed.filter(function (v, i, self) {
         return self.indexOf(v) === i;
       });
+
       result.forEach(function (ele) {
-        // typeof ele:string
-        if (ele.length > 0) {
-          matched.push(ele);
+        if(ele){
+          if (typeof ele ==='string' & ele.length > 0) {
+            matched.push(ele);
+          }else if( ele.selector && ele.content){
+            // 改 class 名
+            ele.selector = selectorProcessor.processSync(ele.selector);
+            matched.push(ele.selector + ele.content);
+          }
         }
       });
+
+      // 只保留使用到的动画
       var frameCommentMarkUsed = false;
       keyFramUsed.forEach(function (ele) {
         objCss.keyFram.forEach(function (e) {
@@ -140,6 +194,8 @@ function filterRules($0, objCss, taskTimerRecord) {
           }
         })
       });
+
+      // 只保留使用到的字体
       var fontCommentMarkUsed = false;
       fontFaceUsed.forEach(function (ele) {
         objCss.fontFace.forEach(function (e) {
@@ -155,7 +211,50 @@ function filterRules($0, objCss, taskTimerRecord) {
 
         })
       });
-      resolve(matched);
+
+      // html 改 class 名
+      (function(){
+        const classes = [];
+        for (const key in renameMap) {
+          if (Object.hasOwnProperty.call(renameMap, key)) {
+            // const element = renameMap[key];
+            classes.push('.'+ key);
+          }
+        }
+        const selectors = classes.join(', ');
+        let allElements = [];
+        try {
+          allElements = Array.prototype.slice.call(container.querySelectorAll(selectors));
+        } catch (error) {
+          console.log(error);
+          console.log('改用*选择所带 class 的元素');
+          allElements = Array.prototype.slice.call(container.querySelectorAll('[class]'));
+        }
+        allElements.push(container);
+        allElements.map(function(item, index){
+
+          // svg 的 className 不是字符串，是一个 SVGAnimatedString  对象，需要使用 classList 方法
+          let classList = item.classList;
+          classList.forEach(function( item1 ){
+
+            // html 类似的类名，在 css 中需要转义 hover:before-1/4  => hover\:before-1\/4
+            let key = cssHelper.getCSSClassName(item1);
+
+            const newName = renameMap[key];
+            if(newName){
+              classList.replace(item1, newName);
+            }
+          });
+          
+        });
+
+      })();
+      
+      
+      resolve({
+        css: matched,
+        html:container.outerHTML
+      });
     }).catch(function (err) {
       reject(err);
     });

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div class="wrapper">
+      <div class="item item0">item0</div>
+      <div class="item item1">item1</div>
+      <div class="item item2">
+        item2
+        <a href="http://" target="_blank" rel="noopener noreferrer">hover</a>
+      </div>
+      <a
+        href="http://"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="font1"
+        style="font-size: 30px"
+        >good</a
+      >
+      <span class="iconfont">bad</span>
+      <div class="hover:before-1/4">特殊类名一 hover:before-1/4</div>
+    </div>
+    <style>
+      @keyframes myfirst {
+        from {
+          background: red;
+        }
+        to {
+          background: yellow;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        outline: none;
+        font-size: 30px !important;
+        color: #333;
+      }
+      div {
+        width: 500px;
+        outline: 1px solid #333;
+        outline-offset: -1px;
+        min-height: 100px;
+        line-height: 100px;
+      }
+      a,
+      span {
+        display: inline-block;
+        width: 90px;
+        border: 1px solid red;
+        background: red;
+      }
+      a:hover,
+      .a-hover {
+        background: greenyellow;
+        color: red !important;
+      }
+      .wrapper {
+        margin: 0 auto;
+      }
+      .item {
+        border-bottom-style: dashed;
+        border-width: 5px;
+      }
+      .item0 {
+        animation: myfirst 5s;
+      }
+      .item1 {
+        background: blue;
+      }
+      .item1::before {
+        display: block;
+        width: 10px;
+        height: 10px;
+        content: ' ';
+        background: brown;
+      }
+      .item2 {
+        background: yellow;
+      }
+      .item2:hover a {
+        border: 10px solid blue;
+        display: inline-block;
+      }
+      /* 特殊类名，能否在 html 里替换 */
+      .hover\:before-1\/4 {
+        border: 30px solid #eee;
+        color: purple;
+      }
+
+      /* 在 600 像素或更小的屏幕上，将背景色设置为橄榄色 */
+      @media screen and (max-width: 1600px) {
+        body {
+          background: #bbb;
+        }
+      }
+      @media (prefers-color-scheme: dark) {
+        body {
+          background: #333;
+          color: white;
+        }
+      }
+
+      @font-face {
+        font-family: 'iconfont'; /* Project id 2664548 */
+        src: url('http://dc.sina.com.cn/svn/_demo/daichang/h5-page-editor/iconfont/iconfont.woff2?t=1628083400764')
+            format('woff2'),
+          url('http://dc.sina.com.cn/svn/_demo/daichang/h5-page-editor/iconfont/iconfont.woff?t=1628083400764')
+            format('woff'),
+          url('http://dc.sina.com.cn/svn/_demo/daichang/h5-page-editor/iconfont/iconfont.ttf?t=1628083400764')
+            format('truetype');
+      }
+
+      .iconfont {
+        font-family: 'iconfont' !important;
+        font-size: 16px;
+        font-style: normal;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      .font1 {
+        font: italic small-caps bold 12px/1.5em iconfont, verdana;
+      }
+    </style>
+  </body>
+</html>

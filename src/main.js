@@ -88,8 +88,8 @@ function getC($0) {
       return filterRules($0, objCss, arrTimerOfTestingIfMatched);
     }).then(function (data) {
       chrome.runtime.sendMessage({
-        css: postTideCss(data),
-        html: $0.outerHTML.replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '')
+        css: postTideCss(data.css),
+        html: data.html.replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '')
           .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, '')
           .replace(/<link[\s\S]*?>/gi, '')
           .replace(/(<img[^>]+src=(['"]))(.*?)(\2.*?>)/g, function () {
